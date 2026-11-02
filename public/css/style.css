@@ -1,0 +1,251 @@
+/* ---------- Couleurs du thème ---------- */
+:root {
+  --fond: #050607;
+  --rouge: #ff2a3d;
+  --rouge-rgb: 255, 42, 61;
+  --cyan: #2ee6e6;
+  --cyan-rgb: 46, 230, 230;
+
+  /* Couleur « active » : rouge par défaut, cyan pendant le défilement */
+  --accent: var(--rouge);
+  --accent-rgb: var(--rouge-rgb);
+
+  --police-titre: "Orbitron", system-ui, sans-serif;
+  --police-texte: "Rajdhani", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;            /* pas de barre de défilement */
+  overscroll-behavior: none;   /* pas de « tirer pour actualiser » */
+  background: var(--fond);
+  color: #e8f4f4;
+  font-family: var(--police-texte);
+}
+
+body {
+  display: flex;
+  flex-direction: column;      /* pavé en haut, boutons en bas */
+  height: 100dvh;
+}
+
+/* ---------- Ligne d'état ---------- */
+#status {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  z-index: 2;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  pointer-events: none;
+}
+#status::before {
+  content: "●";
+  margin-right: 0.6em;
+}
+#status.ko { color: var(--rouge); }
+
+/* ---------- Pavé tactile ---------- */
+#pad {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  touch-action: none;          /* le navigateur ne gère plus le défilement ni le zoom */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none; /* pas de menu sur appui long (iPhone) */
+  background: radial-gradient(circle at 50% 50%, #12080a 0%, var(--fond) 70%);
+}
+
+/* Grille discrète en fond */
+#pad::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(var(--cyan-rgb), 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--cyan-rgb), 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 75%);
+          mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 75%);
+  pointer-events: none;
+}
+
+/* Petits textes dans les coins */
+.coin {
+  position: absolute;
+  top: calc(44px + env(safe-area-inset-top));
+  font-family: var(--police-titre);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: rgba(var(--cyan-rgb), 0.55);
+  pointer-events: none;
+}
+.coin-hg { left: 16px; }
+.coin-hd { right: 16px; font-variant-numeric: tabular-nums; }
+
+/* ---------- Le HUD ---------- */
+#hud {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(86vw, 52dvh);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);  /* hud.js le déplace ensuite à chaque image */
+  pointer-events: none;              /* le doigt touche le pavé, pas le HUD */
+  transition: opacity 0.4s, filter 0.4s;
+}
+
+/* Pendant le défilement, tout ce qui utilise --accent devient cyan */
+#hud.mode-defilement {
+  --accent: var(--cyan);
+  --accent-rgb: var(--cyan-rgb);
+}
+
+#hud.hors-ligne {
+  filter: grayscale(1);
+  opacity: 0.35;
+}
+
+/* Chaque couche SVG occupe tout le HUD ; seule sa rotation change */
+.couche {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  will-change: transform;            /* rotation gérée par la carte graphique */
+}
+
+/* Couleurs des traits SVG */
+.c { stroke: var(--cyan); }
+.r { stroke: var(--rouge); }
+.a { stroke: var(--accent); transition: stroke 0.3s; }
+
+.noeud circle:first-child {
+  fill: var(--fond);
+  stroke: var(--rouge);
+  stroke-width: 2;
+}
+.noeud .point { fill: var(--cyan); }
+
+.etiquette {
+  font-family: var(--police-texte);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  fill: rgba(var(--cyan-rgb), 0.75);
+}
+
+/* Halo lumineux : son opacité suit la vitesse du doigt */
+.halo {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.55) 0%, rgba(var(--accent-rgb), 0.15) 45%, transparent 70%);
+  opacity: 0.3;
+  will-change: opacity;
+}
+
+/* Centre */
+#hud-centre {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+#hud-valeur {
+  font-family: var(--police-titre);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 7vw, 2.2rem);
+  font-variant-numeric: tabular-nums;
+  color: var(--cyan);
+  text-shadow: 0 0 10px rgba(var(--cyan-rgb), 0.8);
+}
+#hud-mode {
+  font-size: clamp(0.5rem, 2.4vw, 0.68rem);
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  white-space: nowrap;
+  color: var(--accent);
+  transition: color 0.3s;
+}
+
+/* Onde de choc (clic) */
+#hud-onde {
+  position: absolute;
+  inset: 30%;
+  border-radius: 50%;
+  border: 3px solid rgba(var(--accent-rgb), 0.95);
+  box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.7);
+  opacity: 0;
+}
+#hud-onde.active {
+  animation: onde 0.6s ease-out;
+}
+@keyframes onde {
+  from { transform: scale(0.6); opacity: 1; }
+  to   { transform: scale(1.9); opacity: 0; }
+}
+
+/* ---------- Boutons ---------- */
+#boutons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+  background: var(--fond);
+  border-top: 1px solid rgba(var(--cyan-rgb), 0.25);
+  touch-action: manipulation;  /* pas de zoom sur double tape */
+}
+
+#boutons button {
+  position: relative;
+  height: 72px;
+  border: 1px solid rgba(var(--cyan-rgb), 0.55);
+  background: rgba(var(--cyan-rgb), 0.06);
+  box-shadow: inset 0 0 18px rgba(var(--cyan-rgb), 0.12);
+  color: var(--cyan);
+  font-family: var(--police-texte);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  /* Coins coupés, façon interface de science-fiction */
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+#boutons button small {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  font-family: var(--police-titre);
+  font-size: 0.6rem;
+  opacity: 0.6;
+}
+
+#boutons button:active {
+  background: rgba(var(--rouge-rgb), 0.25);
+  border-color: var(--rouge);
+  color: #fff;
+  box-shadow: inset 0 0 26px rgba(var(--rouge-rgb), 0.55);
+}
+
+/* Moins d'animation si l'utilisateur l'a demandé dans son système */
+@media (prefers-reduced-motion: reduce) {
+  #hud-onde.active { animation-duration: 0.01s; }
+}

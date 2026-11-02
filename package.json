@@ -1,0 +1,20 @@
+{
+  "name": "tel-mouse",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "echo \"Aucun test pour le moment\" && exit 0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@jitsi/robotjs": "^0.6.24",
+    "express": "^5.3.0",
+    "ws": "^8.22.1"
+  }
+}
