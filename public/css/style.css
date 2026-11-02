@@ -249,3 +249,122 @@ body {
 @media (prefers-reduced-motion: reduce) {
   #hud-onde.active { animation-duration: 0.01s; }
 }
+
+/* ---------- Écran de verrouillage ---------- */
+#verrou {
+  position: fixed;
+  inset: 0;
+  z-index: 10;                       /* par-dessus le pavé et les boutons */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: rgba(5, 6, 7, 0.82);
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+}
+#verrou[hidden] { display: none; }   /* sinon « display: flex » l'emporterait sur hidden */
+
+#verrou-boite {
+  width: min(100%, 340px);
+  padding: 28px 22px 22px;
+  text-align: center;
+  border: 1px solid rgba(var(--cyan-rgb), 0.5);
+  background: rgba(var(--cyan-rgb), 0.05);
+  box-shadow: 0 0 40px rgba(var(--cyan-rgb), 0.12), inset 0 0 30px rgba(var(--cyan-rgb), 0.06);
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+}
+
+.verrou-icone {
+  width: 44px;
+  height: 44px;
+  fill: none;
+  stroke: var(--cyan);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(var(--cyan-rgb), 0.6));
+}
+
+#verrou-titre {
+  margin: 10px 0 18px;
+  font-family: var(--police-titre);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.22em;
+  color: var(--cyan);
+  text-shadow: 0 0 12px rgba(var(--cyan-rgb), 0.6);
+}
+#verrou-titre.refuse {
+  color: var(--rouge);
+  text-shadow: 0 0 14px rgba(var(--rouge-rgb), 0.8);
+}
+#verrou-boite.refuse {
+  border-color: rgba(var(--rouge-rgb), 0.7);
+  background: rgba(var(--rouge-rgb), 0.06);
+  box-shadow: 0 0 40px rgba(var(--rouge-rgb), 0.2), inset 0 0 30px rgba(var(--rouge-rgb), 0.08);
+}
+#verrou-boite.refuse .verrou-icone {
+  stroke: var(--rouge);
+  filter: drop-shadow(0 0 6px rgba(var(--rouge-rgb), 0.7));
+}
+
+#verrou-form {
+  display: grid;
+  gap: 12px;
+}
+
+#verrou-code {
+  width: 100%;
+  padding: 12px 8px;
+  border: 1px solid rgba(var(--cyan-rgb), 0.55);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-family: var(--police-titre);
+  font-size: 1.8rem;
+  letter-spacing: 0.35em;
+  text-align: center;
+  caret-color: var(--cyan);
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+#verrou-code::placeholder { color: rgba(var(--cyan-rgb), 0.2); }
+#verrou-code:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 14px rgba(var(--cyan-rgb), 0.35);
+}
+
+#verrou-bouton {
+  height: 50px;
+  border: 1px solid rgba(var(--cyan-rgb), 0.6);
+  background: rgba(var(--cyan-rgb), 0.12);
+  color: var(--cyan);
+  font-family: var(--police-texte);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent;
+}
+#verrou-bouton:active { background: rgba(var(--cyan-rgb), 0.3); }
+#verrou-bouton:disabled { opacity: 0.4; }
+
+#verrou-message {
+  min-height: 1.3em;
+  margin-top: 14px;
+  font-size: 0.95rem;
+  color: rgba(232, 244, 244, 0.75);
+}
+
+/* Secousse quand le code est refusé */
+#verrou-boite.secousse { animation: secousse 0.45s; }
+@keyframes secousse {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+/* HUD éteint tant que c'est verrouillé */
+body.verrouille #hud { filter: grayscale(1); opacity: 0.35; }

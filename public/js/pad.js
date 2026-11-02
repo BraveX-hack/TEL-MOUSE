@@ -1,5 +1,5 @@
 // Gestes tactiles → messages envoyés à l'ordinateur.
-// L'affichage est géré par hud.js (objet HUD), chargé avant ce fichier.
+// L'affichage est géré par hud.js (objet HUD) et verrou.js (objet VERROU), chargés avant ce fichier.
 
 const pad = document.getElementById('pad');
 const btnGauche = document.getElementById('btn-gauche');
@@ -9,17 +9,67 @@ const btnDroit = document.getElementById('btn-droit');
 // location.host vaut "192.168.1.15:3000" : on se connecte au serveur qui a envoyé la page
 const socket = new WebSocket(`ws://${location.host}`);
 
+let autorise = false;     // devient true quand le serveur a accepté le code
+let codeEnvoye = null;    // dernier code envoyé (pour le mémoriser s'il est bon)
+let essaiAuto = false;    // true si le code venait de la mémoire du téléphone
+
+function envoyerCode(code) {
+  codeEnvoye = code;
+  socket.send(JSON.stringify({ type: 'auth', code }));
+}
+VERROU.surValidation((code) => {
+  essaiAuto = false;
+  envoyerCode(code);
+});
+
 socket.addEventListener('open', () => {
   HUD.connexion(true);
+
+  // Code déjà mémorisé ? On l'essaie directement, sinon on demande à l'utilisateur
+  const codeMemorise = VERROU.lireCode();
+  if (codeMemorise) {
+    essaiAuto = true;
+    envoyerCode(codeMemorise);
+  } else {
+    VERROU.afficher();
+  }
+});
+
+// Réponses du serveur
+socket.addEventListener('message', (e) => {
+  let msg;
+  try {
+    msg = JSON.parse(e.data);
+  } catch {
+    return;
+  }
+  if (msg.type !== 'auth') return;
+
+  if (msg.ok) {
+    autorise = true;
+    VERROU.sauverCode(codeEnvoye);
+    VERROU.masquer();
+  } else if (msg.bloque) {
+    VERROU.oublierCode();
+    VERROU.bloquer(msg.minutes);
+  } else if (essaiAuto) {
+    // Le code mémorisé ne marche plus : TEL-MOUSE a redémarré avec un nouveau code
+    essaiAuto = false;
+    VERROU.oublierCode();
+    VERROU.afficher('TEL-MOUSE a redémarré : entre le nouveau code.');
+  } else {
+    VERROU.refuser(msg.restants);
+  }
 });
 
 socket.addEventListener('close', () => {
+  autorise = false;
   HUD.connexion(false);
 });
 
-// Envoie un message seulement si la connexion est ouverte
+// Envoie un message seulement si la connexion est ouverte ET le code validé
 function send(message) {
-  if (socket.readyState === WebSocket.OPEN) {
+  if (autorise && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(message));
   }
 }

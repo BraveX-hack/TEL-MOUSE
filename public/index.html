@@ -125,8 +125,27 @@
     <button id="btn-droit" type="button">Clic droit<small>R</small></button>
   </div>
 
-  <!-- hud.js d'abord : pad.js utilise l'objet HUD qu'il crée -->
+  <!-- Écran de verrouillage : par-dessus tout, tant que le code n'est pas validé -->
+  <div id="verrou" hidden>
+    <div id="verrou-boite">
+      <svg class="verrou-icone" viewBox="0 0 48 48" aria-hidden="true">
+        <rect x="10" y="21" width="28" height="20" rx="3"/>
+        <path d="M16 21v-6a8 8 0 0 1 16 0v6"/>
+        <circle cx="24" cy="31" r="2.5"/>
+      </svg>
+      <p id="verrou-titre">ACCÈS SÉCURISÉ</p>
+      <form id="verrou-form" novalidate>
+        <input id="verrou-code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+               autocomplete="one-time-code" placeholder="000000" aria-label="Code d'accès à 6 chiffres">
+        <button id="verrou-bouton" type="submit">Déverrouiller</button>
+      </form>
+      <p id="verrou-message" role="status"></p>
+    </div>
+  </div>
+
+  <!-- hud.js et verrou.js d'abord : pad.js utilise les objets HUD et VERROU qu'ils créent -->
   <script src="/js/hud.js"></script>
+  <script src="/js/verrou.js"></script>
   <script src="/js/pad.js"></script>
 </body>
 </html>
