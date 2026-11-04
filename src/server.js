@@ -7,6 +7,7 @@ const { moveCursor, scroll, click } = require('./mouse');
 
 const app = express();
 const PORT = 3000;
+//TODE 1 
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 

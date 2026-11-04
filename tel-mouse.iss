@@ -4,18 +4,21 @@
 ; =====================================================================
 
 #define MonAppNom "TEL-MOUSE"
-#define MonAppVersion "1.0.0"
-#define MonAppEditeur "Ton nom"
+#define MonAppVersion "1.1.0"
+#define MonAppEditeur "dovononbrave5-wq"
+#define MonAppURL "https://github.com/dovononbrave5-wq/TEL-MOUSE"
 #define MonAppExe "tel-mouse.exe"
 
 [Setup]
-; Identifiant unique de l'application : génère le tien dans Inno Setup
-; avec Tools > Generate GUID, et garde-le pour toutes les versions futures.
+; Identifiant unique de TEL-MOUSE : NE JAMAIS LE CHANGER entre deux versions,
+; sinon Windows croira que c'est un autre logiciel.
 ; (La double accolade {{ au début est volontaire.)
-AppId={{REMPLACE-PAR-TON-GUID}
+AppId={{4595D8ED-D0F3-4AEA-ABA6-D046BFC69E15}
 AppName={#MonAppNom}
 AppVersion={#MonAppVersion}
 AppPublisher={#MonAppEditeur}
+AppPublisherURL={#MonAppURL}
+AppSupportURL={#MonAppURL}
 DefaultDirName={autopf}\{#MonAppNom}
 DefaultGroupName={#MonAppNom}
 DisableProgramGroupPage=yes
@@ -53,9 +56,12 @@ Name: "{autodesktop}\{#MonAppNom}"; Filename: "{app}\TEL-MOUSE.bat"; WorkingDir:
 Name: "{commonstartup}\{#MonAppNom}"; Filename: "{app}\TEL-MOUSE.bat"; WorkingDir: "{app}"; IconFilename: "{app}\{#MonAppExe}"; Tasks: demarrage
 
 [Run]
-; Autorise TEL-MOUSE à recevoir les connexions du téléphone, uniquement sur les réseaux PRIVÉS
-; ("" = un guillemet dans une chaîne Inno Setup)
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""{#MonAppNom}"" dir=in action=allow program=""{app}\{#MonAppExe}"" enable=yes profile=private"; Flags: runhidden; StatusMsg: "Configuration du pare-feu..."
+; 1. Supprime l'ancienne règle de pare-feu (mise à jour) pour ne pas l'avoir en double
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""{#MonAppNom}"""; Flags: runhidden; StatusMsg: "Configuration du pare-feu..."
+; 2. Autorise TEL-MOUSE à recevoir les connexions du téléphone sur TOUS les réseaux
+;    (privés et publics : le code d'accès à 6 chiffres protège la souris)
+;    ("" = un guillemet dans une chaîne Inno Setup)
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""{#MonAppNom}"" dir=in action=allow program=""{app}\{#MonAppExe}"" enable=yes profile=any"; Flags: runhidden; StatusMsg: "Configuration du pare-feu..."
 ; Case « Lancer TEL-MOUSE » sur la dernière page de l'installation
 Filename: "{app}\TEL-MOUSE.bat"; WorkingDir: "{app}"; Description: "Lancer {#MonAppNom} maintenant"; Flags: postinstall nowait skipifsilent shellexec
 
